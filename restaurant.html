@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#317EFB"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Normalize.css for better cross-browser consistency -->
+  <link rel="stylesheet" src="//normalize-css.googlecode.com/svn/trunk/normalize.css" />
+  <!-- Main CSS file -->
+  <link rel="stylesheet" href="css/styles.css" type="text/css">
+  <link rel="stylesheet" href="css/restaurant.css" type="text/css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.1/dist/leaflet.css" integrity="sha512-Rksm5RenBEKSKFjgI3a41vrjkw4EVPlJ3+OiI65vTjIdo9brlAacEuKOiQ5OFh7cOI1bkDwLqdLw3Zg0cRJAAQ==" crossorigin=""/>
+  <title>Restaurant Info</title>
+</head>
+
+<body class="inside">
+  <!-- Beginning header -->
+  <header>
+    <!-- Beginning nav -->
+    <nav>
+      <h1><a href="/">Restaurant Reviews</a></h1>
+    </nav>
+    <!-- Beginning breadcrumb -->
+    <ul aria-label="Breadcrumb" id="breadcrumb" >
+      <li><a href="/" aria-level="1">Home</a></li>
+    </ul>
+    <!-- End breadcrumb -->
+    <!-- End nav -->
+  </header>
+  <!-- End header -->
+
+  <!-- Beginning main -->
+  <main id="maincontent">
+    <!-- Beginning map -->
+    <section id="map-container">
+      <div role="application" id="map"></div>
+    </section>
+    <!-- End map -->
+    <!-- Beginning restaurant -->
+    <section  class="flex-container grid-wrapper" id="restaurant-container">
+      <h2 id="restaurant-name"></h2>
+      <img id="restaurant-img">
+      <p id="restaurant-cuisine"></p>
+      <p id="restaurant-address"></p>
+      <table id="restaurant-hours"></table>
+    </section>
+    <!-- end restaurant -->
+    <!-- Beginning reviews -->
+    <section class="flex-container grid-wrapper" id="reviews-container">
+      <ul id="reviews-list"></ul>
+    </section>
+    <section class="flex-container grid-wrapper">
+      <div class="enter-review">
+        Name: <input id="name"><br>
+        <br>
+        Rating: <input id="rating"><br>
+        <br>
+        <div class="comment-label">Comments: </div><textarea id="comments" class="enter-comments"></textarea><br>
+        <br>
+        <button type="button" onclick="myFunction()">Submit</button>
+      </div>
+    </section>
+    <!-- End reviews -->
+  </main>
+  <!-- End main -->
+
+  <!-- Beginning footer -->
+  <footer id="footer">
+    Copyright (c) 2017 <a href="/"><strong>Restaurant Reviews</strong></a> All Rights Reserved.
+    <div>Icons made by <a href="http://www.freepik.com" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
+  </footer>
+  <!-- End footer -->
+  <script src="https://unpkg.com/leaflet@1.3.1/dist/leaflet.js" integrity="sha512-/Nsx9X4HebavoBvEBuyp3I7od5tA0UzAxs+j83KgC8PU0kgB4XiK4Lfe4y4cgBtaRJQEIFCW+oC506aPT2L1zw==" crossorigin=""></script>
+  <!-- Beginning scripts -->
+  <!-- Database helpers -->
+  <script type="text/javascript" src="js/dbhelper.js"></script>
+  <script type="text/javascript" src="js/idb-data.js"></script>
+  <script>
+    function myFunction() {
+      var personName, reviewRating, reviewComments;
+      //setting info for the user's comment
+      personName = document.getElementById("name").value;
+      reviewRating = document.getElementById("rating").value;
+      reviewComments = document.getElementById("comments").value;
+
+      var userComment = {};
+      var keyVal = reviewData.length + 1;
+      userComment.id = keyVal;
+      userComment.restaurant_id = self.restaurant.id;
+      userComment.name = personName;
+      userComment.createdAt = Date.now();
+      userComment.rating = reviewRating;
+      userComment.comments = reviewComments;
+
+      //post review to database
+      var init = {
+        method: 'POST',
+        body: JSON.stringify(userComment),
+        headers:{
+          'Content-Type': 'application/json'
+        }
+      }
+      fetch('http://localhost:1337/reviews/', init)
+      .then(res => res.json())
+      .then(resonse => console.log('Success:', JSON.stringify(response)))
+      .catch(error => console.log('Error:', error));
+
+      //store review in indexeddb
+      var request = indexedDB.open("Restaurant_Database");
+      request.onsuccess = function(){
+        var db = request.result;
+        var tx = db.transaction("Restaurant_Reviews", "readwrite");
+        var store = tx.objectStore("Restaurant_Reviews");
+        var storeRequest = store.add(userComment);
+        location.reload();
+    }
+  }
+  </script>
+  <!-- Main javascript file -->
+  <script type="text/javascript" src="js/restaurant_info.js"></script>
+  <!-- Google Maps -->
+ <!--  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA_tKbW6A5pQ-eupxI56myUnHLqYCzOjKo&libraries=places&callback=initMap"></script> -->
+  <!-- End scripts -->
+
+</body>
+
+</html>
