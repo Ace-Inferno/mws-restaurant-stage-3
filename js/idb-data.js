@@ -1,6 +1,5 @@
-let restaurantData;
-let reviewData;
-let updatedReviews;
+var restaurantData;
+var reviewData;
 
   function getRestaurantJSON(){
     const database = new XMLHttpRequest();
@@ -18,6 +17,8 @@ let updatedReviews;
   function handleError () {
     console.log( 'An error occurred' );
   }
+  getRestaurantJSON();
+
   function getReviewsJSON(){
         fetch(`${DBHelper.REVIEWS_URL}`)
           .then(DBHelper.handleErrors)
@@ -32,6 +33,8 @@ let updatedReviews;
             return reviewData
           });
   }
+  getReviewsJSON();
+
   function createRestaurantsIDB(){
     const dbName = "Restaurant_Database";
     const request = indexedDB.open(dbName);
@@ -43,6 +46,7 @@ let updatedReviews;
         });
     };
   }
+  createRestaurantsIDB();
   function createReviewsIDB(){
     const dbName = "Restaurant_Database";
     const request = indexedDB.open(dbName,2);
@@ -54,6 +58,7 @@ let updatedReviews;
       });
     };
   }
+createReviewsIDB();
 
 /*
 function updateReviews(){
@@ -71,8 +76,3 @@ function updateReviews(){
     }
   }
 }*/
-
-getRestaurantJSON();
-createRestaurantsIDB();
-getReviewsJSON();
-createReviewsIDB();

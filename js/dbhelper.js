@@ -29,14 +29,6 @@ class DBHelper {
       });
   }
 
-static updateReviewData() {
-  fetch(`${DBHelper.REVIEWS_URL}`)
-    .then(function(response){
-      var reviews = response.json();
-      reviewData = reviews;
-    });
-}
-
 /*
   static getUpdateReviews(){
     if (reviewData.length == 30){

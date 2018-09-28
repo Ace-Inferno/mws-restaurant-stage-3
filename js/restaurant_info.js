@@ -2,6 +2,23 @@ let restaurant;
 let reviews;
 var newMap;
 
+/*function getReviewsJSON(){
+      fetch(`${DBHelper.REVIEWS_URL}`)
+        .then(DBHelper.handleErrors)
+        .then(function(response){
+            var reviews = response.json();
+            return reviews;
+        })
+        .then(function(review){
+          reviewData = review;
+          //caches.open('offline').then(function(cache){cache.add(`${DBHelper.REVIEWS_URL}`)});
+          console.log(reviewData);
+          return reviewData
+        });
+}
+getReviewsJSON();
+*/
+
 /**
  * Initialize map as soon as the page is loaded.
  */
@@ -64,11 +81,22 @@ initMap = () => {
     });
     return reviewData;
 }*/
-
-function getReviews(callback) {
-      console.log(reviewData);
-      callback(updatedReviews);
+function getNewReviews(){
+  const database = new XMLHttpRequest();
+  database.open('GET', DBHelper.REVIEWS_URL);
+  database.onload = handleSuccess;
+  database.onerror = handleError;
+  database.send();
 }
+function handleSuccess () {
+  const json = JSON.parse(this.responseText);
+  reviewData = json;
+  return reviewData;
+}
+function handleError () {
+  console.log( 'An error occurred' );
+}
+
 /**
  * Get current restaurant from page URL.
  */
@@ -143,32 +171,64 @@ fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => 
 /**
  * Create all reviews HTML and add them to the webpage.
  */
-fillReviewsHTML = (restaurantInfo = self.restaurant) => {
-  const container = document.getElementById('reviews-container');
-  const title = document.createElement('h2');
-  title.innerHTML = 'Reviews';
-  container.appendChild(title);
+ fillReviewsHTML = (restaurantInfo = self.restaurant) => {
+   const container = document.getElementById('reviews-container');
+   const title = document.createElement('h2');
+   title.innerHTML = 'Reviews';
+   container.appendChild(title);
 
-  var reviews = [];
-  var resReviews = reviewData;
-  for(i=0;i<resReviews.length;i++){
-    if(restaurantInfo.id == resReviews[i].restaurant_id){
-      reviews.push(resReviews[i]);
-    }
-  }
-  if (!reviews) {
-    const noReviews = document.createElement('p');
-    noReviews.innerHTML = 'No reviews yet!';
-    container.appendChild(noReviews);
-    return;
-  }
-  const ul = document.getElementById('reviews-list');
-  reviews.forEach(review => {
-    ul.appendChild(createReviewHTML(review));
-  });
-  container.appendChild(ul);
+   fetch(`http://localhost:1337/reviews/?restaurant_id=${self.restaurant.id}`)
+    .then(DBHelper.handleErrors)
+    .then(function(response){
+      var reviews = response.json();
+      return reviews;
+    })
+    .then(function(reviews){
+      reviewData = reviews;
+      console.log(reviewData);
+      if (!reviewData) {
+        const noReviews = document.createElement('p');
+        noReviews.innerHTML = 'No reviews yet!';
+        container.appendChild(noReviews);
+        return;
+      }
+      const ul = document.getElementById('reviews-list');
+      reviews.forEach(review => {
+        ul.appendChild(createReviewHTML(review));
+      });
+      container.appendChild(ul);
+    })
+    .catch(function(){
+      var request = indexedDB.open("Restaurant_Database");
+      request.onsuccess = function(e){
+        var db = e.target.result;
+        var tx = db.transaction("Restaurant_Reviews", "readwrite");
+        var store = tx.objectStore("Restaurant_Reviews");
+        var storeRequest = store.getAll();
+        storeRequest.onsuccess = function(){
+          var reviewDatabase = storeRequest.result;
+          var storeReviews = []
+          for(i=0;i<reviewDatabase.length;i++){
+            if(restaurantInfo.id == reviewDatabase[i].restaurant_id){
+              storeReviews.push(reviewDatabase[i]);
+            }
+          }
+          console.log(storeReviews);
+          if (!storeReviews) {
+            const noReviews = document.createElement('p');
+            noReviews.innerHTML = 'No reviews yet!';
+            container.appendChild(noReviews);
+            return;
+          }
+          const ul = document.getElementById('reviews-list');
+          storeReviews.forEach(review => {
+            ul.appendChild(createReviewHTML(review));
+          });
+          container.appendChild(ul);
+      }
+    };
+ });
 }
-
 /**
  * Create review HTML and add it to the webpage.
  */
