@@ -29,35 +29,6 @@ class DBHelper {
       });
   }
 
-/*
-  static getUpdateReviews(){
-    if (reviewData.length == 30){
-      var request = indexedDB.open("Restaurant_Database");
-      request.onsuccess = function(e){
-        var db = e.target.result;
-        var tx = db.transaction("Restaurant_Reviews", "readwrite");
-        var store = tx.objectStore("Restaurant_Reviews");
-        var storeRequest = store.getAll();
-        storeRequest.onsuccess = function(){
-          var reviewDatabase = storeRequest.result;
-          updatedReviews = reviewDatabase;
-          console.log(updatedReviews);
-          return updatedReviews;
-        }
-      }
-    }else{
-      DBHelper.updateReviews();
-      console.log(updatedReviews);
-      return updatedReviews;
-    }
-    /*var p1 = new Promise( (resolve, reject) =>{
-      resolve(updatedReviews);
-    });
-    p1.then( value => {
-      console.log(value);
-      return value;
-    });
-  }*/
 
   static handleErrors(response) {
       if (!response.ok) {
@@ -95,7 +66,7 @@ class DBHelper {
             callback(null, restaurants);
           }
         };
-      });
+    });
   }
 
   /**

@@ -2,23 +2,6 @@ let restaurant;
 let reviews;
 var newMap;
 
-/*function getReviewsJSON(){
-      fetch(`${DBHelper.REVIEWS_URL}`)
-        .then(DBHelper.handleErrors)
-        .then(function(response){
-            var reviews = response.json();
-            return reviews;
-        })
-        .then(function(review){
-          reviewData = review;
-          //caches.open('offline').then(function(cache){cache.add(`${DBHelper.REVIEWS_URL}`)});
-          console.log(reviewData);
-          return reviewData
-        });
-}
-getReviewsJSON();
-*/
-
 /**
  * Initialize map as soon as the page is loaded.
  */
@@ -68,19 +51,39 @@ initMap = () => {
     }
   });
 } */
+function checkPendingReviews(){
+  var request = indexedDB.open("Restaurant_Database");
+  request.onsuccess = function(){
+    var db = request.result;
+    var tx = db.transaction("Pending_Reviews","readwrite");
+    var store = tx.objectStore("Pending_Reviews");
+    var storeRequest = store.getAll();
+    storeRequest.onsuccess = function(event){
+      var restaurants = storeRequest.result;
+      if(restaurants.length >= 1){
+        restaurants.forEach(function(review){
 
-/*function getReviews() {
-  fetch(`${DBHelper.REVIEWS_URL}`)
-    .then(DBHelper.handleErrors)
-    .then(function(response){
-      const reviews = response.json();
-      return reviews;
-    })
-    .then(function(review){
-        reviewData = review;
-    });
-    return reviewData;
-}*/
+          var init = {
+            method: 'POST',
+            body: JSON.stringify(review),
+            headers:{
+              'Content-Type': 'application/json'
+            }
+          }
+          //post pending review to database
+          fetch('http://localhost:1337/reviews/', init)
+          .then(res => res.json())
+          .then(response => console.log('Success:', JSON.stringify(response)))
+          .catch(error => {
+            console.log('Error:', error);
+          })
+        });
+      }
+    }
+  }
+}
+checkPendingReviews();
+
 function getNewReviews(){
   const database = new XMLHttpRequest();
   database.open('GET', DBHelper.REVIEWS_URL);
@@ -184,9 +187,9 @@ fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => 
       return reviews;
     })
     .then(function(reviews){
-      reviewData = reviews;
-      console.log(reviewData);
-      if (!reviewData) {
+      var onlineReviewData = reviews;
+      console.log(onlineReviewData);
+      if (!onlineReviewData) {
         const noReviews = document.createElement('p');
         noReviews.innerHTML = 'No reviews yet!';
         container.appendChild(noReviews);

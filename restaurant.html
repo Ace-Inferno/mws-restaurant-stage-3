@@ -85,7 +85,26 @@
       reviewComments = document.getElementById("comments").value;
 
       var userComment = {};
-      var keyVal = reviewData.length + 1;
+      var keyVal = 0;
+      if(!reviewData){
+        var request = indexedDB.open("Restaurant_Database");
+        request.onsuccess = function(e){
+          var db = e.target.result;
+          var tx = db.transaction("Restaurant_Reviews", "readwrite");
+          var store = tx.objectStore("Restaurant_Reviews");
+          var storeRequest = store.getAll();
+          storeRequest.onsuccess = function(){
+            var reviewDatabase = storeRequest.result;
+            keyVal = reviewDatabase.length + 1;
+            generateReview();
+          }
+      }
+    }else{
+        keyVal = reviewData.length + 1;
+        generateReview();
+      }
+
+    function generateReview(){
       userComment.id = keyVal;
       userComment.restaurant_id = self.restaurant.id;
       userComment.name = personName;
@@ -93,7 +112,6 @@
       userComment.rating = reviewRating;
       userComment.comments = reviewComments;
 
-      //post review to database
       var init = {
         method: 'POST',
         body: JSON.stringify(userComment),
@@ -101,12 +119,24 @@
           'Content-Type': 'application/json'
         }
       }
+      //post review to database if online
       fetch('http://localhost:1337/reviews/', init)
       .then(res => res.json())
-      .then(resonse => console.log('Success:', JSON.stringify(response)))
-      .catch(error => console.log('Error:', error));
+      .then(function(response){console.log('Success:', JSON.stringify(response))})
+      .catch(error => {
+        //store review to pending indexeddb if offline
+        console.log('Error:', error);
+        var request = indexedDB.open("Restaurant_Database");
+        request.onsuccess = function(){
+          var db = request.result;
+          var tx = db.transaction("Pending_Reviews", "readwrite");
+          var store = tx.objectStore("Pending_Reviews");
+          var storeRequest = store.add(userComment);
+          console.log(userComment);
+        }
+      });
 
-      //store review in indexeddb
+      //store review in indexeddb for offline use
       var request = indexedDB.open("Restaurant_Database");
       request.onsuccess = function(){
         var db = request.result;
@@ -116,6 +146,7 @@
         location.reload();
     }
   }
+}
   </script>
   <!-- Main javascript file -->
   <script type="text/javascript" src="js/restaurant_info.js"></script>
