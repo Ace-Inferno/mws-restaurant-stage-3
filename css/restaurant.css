@@ -36,7 +36,7 @@
   #restaurant-name{
     text-align: center;
     max-width: 600px;
-    width: 90%;
+    width: 100%;
   }
   #restaurant-hours td{
     color:#000;
@@ -65,13 +65,13 @@
   }
 
   .enter-review{
-    height:430px;
+    height:500px;
     padding:20px 0px 20px;
     border-bottom: 1px solid #d9d9d9;
     border-top: 1px solid #fff;
     position: relative;
-    right:111px;
     font-size: 14pt;
+    width:100%;
   }
 
   .enter-comments{
@@ -85,6 +85,24 @@
   }
   .comment-label {
 
+  }
+
+  .favorite-img{
+    position: relative;
+    left: 45%;
+    bottom: 13px;
+  }
+  .rating-dropdown{
+    font-size: 16pt;
+  }
+  .submit-button{
+    font-size: 16pt;
+    position: relative;
+    bottom: 20px;
+    left: 100px;
+  }
+  .input-area{
+    width:90%;
   }
 
   @media screen and (max-width:999px){
@@ -102,17 +120,37 @@
     }
   }
 
+  @media screen and (min-width:600px){
+    .enter-review{
+      width: 60%;
+    }
+  }
+@media screen and (min-width:800px){
+  .enter-review{
+    height:450px;
+  }
+}
   @media screen and (min-width:1024px){
     #reviews-container{
       width:90%;
     }
     #restaurant-address{
-      font-size:12pt;
+      font-size:18pt;
     }
     #restaurant-hours td{
-      font-size: 12pt;
+      font-size: 16pt;
     }
     p{
-      font-size: 13pt;
+      font-size: 15pt;
     }
+    .enter-review{
+      width:41%;
+      height:450px;
+    }
+}
+
+@media screen and (min-width:1246px){
+  .enter-review{
+    width: 25%;
+  }
 }
