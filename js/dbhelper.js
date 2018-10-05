@@ -187,6 +187,33 @@ class DBHelper {
   static altTextForImage(restaurant) {
     return (`${restaurant.name} a restaurant in New York`);
   }
+//get icon location
+  static getFavorite(value) {
+    if(value == false || value == "false"){
+      return "/icons/notfavorite.png";
+    }else{
+      return "/icons/favorite.png";
+    }
+  }
+
+  static updateOfflineFavorites(favoriteValue,id){
+    var request = indexedDB.open("Restaurant_Database");
+    request.onsuccess = function(e){
+      var db = e.target.result;
+      var tx = db.transaction("Restaurant_Data", "readwrite");
+      var store = tx.objectStore("Restaurant_Data");
+      var storeRequest = store.getAll();
+      storeRequest.onsuccess = function(event){
+        id = id -1;
+        var storeData = storeRequest.result[id];
+        storeData.is_favorite = favoriteValue;
+        var requestUpdate = store.put(storeData,id+1);
+        requestUpdate.onsuccess = function(event){
+          console.log("successfully updated indexedDB");
+        }
+      }
+    }
+  }
   /**
    * Restaurant image URL.
    */

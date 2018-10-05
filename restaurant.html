@@ -38,7 +38,10 @@
     <!-- End map -->
     <!-- Beginning restaurant -->
     <section  class="flex-container grid-wrapper" id="restaurant-container">
-      <h2 id="restaurant-name"></h2>
+      <div>
+        <h2 id="restaurant-name"></h2>
+        <img id="restaurant-favorite" role="button" onclick="Favorite.selectFavorite(self.restaurant)">
+      </div>
       <img id="restaurant-img">
       <p id="restaurant-cuisine"></p>
       <p id="restaurant-address"></p>
@@ -49,15 +52,22 @@
     <section class="flex-container grid-wrapper" id="reviews-container">
       <ul id="reviews-list"></ul>
     </section>
-    <section class="flex-container grid-wrapper">
+    <section class="flex-container grid-wrapper input-area">
       <div class="enter-review">
-        Name: <input id="name"><br>
+        <label for="name">Name:</label><input type="text" value="name" id="name"><br>
         <br>
-        Rating: <input id="rating"><br>
+        <label for="rating">Rating:</label>
+        <select class="rating-dropdown" id="rating">
+          <option value="1" >1</option>
+          <option value="2" >2</option>
+          <option value="3" >3</option>
+          <option value="4" >4</option>
+          <option value="5" >5</option>
+        </select><br>
         <br>
         <div class="comment-label">Comments: </div><textarea id="comments" class="enter-comments"></textarea><br>
         <br>
-        <button type="button" onclick="myFunction()">Submit</button>
+        <button class="submit-button" role="button" type="button" onclick="myFunction()">Submit</button>
       </div>
     </section>
     <!-- End reviews -->
@@ -74,6 +84,7 @@
   <!-- Beginning scripts -->
   <script type="text/javascript" src="js/dbhelper.js"></script>
   <script type="text/javascript" src="js/idb-data.js"></script>
+  <script type="text/javascript" src="js/favorite.js"></script>
 
   <!-- Database helpers -->
   <script>
@@ -109,6 +120,7 @@
       userComment.restaurant_id = self.restaurant.id;
       userComment.name = personName;
       userComment.createdAt = Date.now();
+      userComment.updatedAt = Date.now();
       userComment.rating = reviewRating;
       userComment.comments = reviewComments;
 

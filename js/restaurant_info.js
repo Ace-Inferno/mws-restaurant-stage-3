@@ -51,6 +51,8 @@ initMap = () => {
     }
   });
 } */
+
+//checks for pending reviews in the indexeddb and adds them to local database file
 function checkPendingReviews(){
   var request = indexedDB.open("Restaurant_Database");
   request.onsuccess = function(){
@@ -60,7 +62,7 @@ function checkPendingReviews(){
     var storeRequest = store.getAll();
     storeRequest.onsuccess = function(event){
       var restaurants = storeRequest.result;
-      if(restaurants.length >= 1){
+      for(i=restaurants.length; i >= 1; i--){
         restaurants.forEach(function(review){
 
           var init = {
@@ -70,10 +72,19 @@ function checkPendingReviews(){
               'Content-Type': 'application/json'
             }
           }
-          //post pending review to database
+          //post pending review to database and delete them when finished posting
           fetch('http://localhost:1337/reviews/', init)
           .then(res => res.json())
           .then(response => console.log('Success:', JSON.stringify(response)))
+          .then(function(){
+            var request = indexedDB.open("Restaurant_Database");
+            request.onsuccess = function(){
+              var db = request.result;
+              var tx = db.transaction("Pending_Reviews","readwrite");
+              var store = tx.objectStore("Pending_Reviews");
+              store.clear();
+            }
+          })
           .catch(error => {
             console.log('Error:', error);
           })
@@ -135,20 +146,65 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   const address = document.getElementById('restaurant-address');
   address.innerHTML = restaurant.address;
 
-  const image = document.getElementById('restaurant-img');
-  image.className = 'restaurant-img'
-  image.src = DBHelper.imageUrlForRestaurant(restaurant);
-  image.alt = DBHelper.altTextForImage(restaurant);
+  fetch(`http://localhost:1337/restaurants/${restaurant.id}`)
+   .then(DBHelper.handleErrors)
+   .then(function(response){
+     var restaurant = response.json();
+     return restaurant;
+   })
+   .then(function(restaurant){
+      const favorite = document.getElementById('restaurant-favorite');
+      favorite.src = DBHelper.getFavorite(restaurant.is_favorite);
+      favorite.className = 'favorite-img';
+      favorite.alt = "favorite icon";
 
-  const cuisine = document.getElementById('restaurant-cuisine');
-  cuisine.innerHTML = restaurant.cuisine_type;
+      const image = document.getElementById('restaurant-img');
+      image.className = 'restaurant-img'
+      image.src = DBHelper.imageUrlForRestaurant(restaurant);
+      image.alt = DBHelper.altTextForImage(restaurant);
 
-  // fill operating hours
-  if (restaurant.operating_hours) {
-    fillRestaurantHoursHTML();
-  }
-  // fill reviews
-  fillReviewsHTML();
+      const cuisine = document.getElementById('restaurant-cuisine');
+      cuisine.innerHTML = restaurant.cuisine_type;
+
+      // fill operating hours
+      if (restaurant.operating_hours) {
+        fillRestaurantHoursHTML();
+      }
+      // fill reviews
+      fillReviewsHTML();
+    }).catch(function(){
+        var request = indexedDB.open("Restaurant_Database");
+
+        request.onsuccess = function(e){
+          var db = e.target.result;
+          var tx = db.transaction("Restaurant_Data", "readwrite");
+          var store = tx.objectStore("Restaurant_Data");
+          var storeRequest = store.getAll();
+
+          storeRequest.onsuccess = function(){
+            var offlineData = storeRequest.result[restaurant.id];
+            const favorite = document.getElementById('restaurant-favorite');
+            favorite.src = DBHelper.getFavorite(offlineData.is_favorite);
+            favorite.className = 'favorite-img';
+            favorite.alt = "favorite icon";
+          }
+
+          const image = document.getElementById('restaurant-img');
+          image.className = 'restaurant-img'
+          image.src = DBHelper.imageUrlForRestaurant(restaurant);
+          image.alt = DBHelper.altTextForImage(restaurant);
+
+          const cuisine = document.getElementById('restaurant-cuisine');
+          cuisine.innerHTML = restaurant.cuisine_type;
+
+          // fill operating hours
+          if (restaurant.operating_hours) {
+            fillRestaurantHoursHTML();
+          }
+          // fill reviews
+          fillReviewsHTML();
+        };
+      });
 }
 
 /**
